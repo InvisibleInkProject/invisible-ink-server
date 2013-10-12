@@ -2,6 +2,7 @@
 
 settings.py
 
+*.db
 *.pyc
 *~
 *.swp
