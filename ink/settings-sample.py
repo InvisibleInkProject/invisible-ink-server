@@ -84,6 +84,10 @@ STATICFILES_FINDERS = (
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
+TWITTER_CONSUMER_KEY = ""
+TWITTER_CONSUMER_SECRET = ""
+TWITTER_ACCESS_KEY = ""
+TWITTER_ACCESS_SECRET = ""
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (

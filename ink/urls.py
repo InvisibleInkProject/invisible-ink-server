@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, include, url
+from ink.views import GetByLocationView
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -6,8 +7,7 @@ from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'ink.views.home', name='home'),
-    # url(r'^ink/', include('ink.foo.urls')),
+    url(r'^$', GetByLocationView.as_view(), name='home'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
