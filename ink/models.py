@@ -10,3 +10,5 @@ class Message(models.Model):
     location_lat = models.FloatField()
     location_lon = models.FloatField()
 
+    def __unicode__(self):
+        return str(self.location_lat) + ',' +str(self.location_lon) + ': ' +str(self.text)

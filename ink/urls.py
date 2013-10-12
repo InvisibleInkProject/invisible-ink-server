@@ -12,7 +12,7 @@ api.register(MessageResource())
 
 urlpatterns = patterns('',
     # Examples:
-    url(r'^$', GetByLocationView.as_view(), name='home'),
+    url(r'^twitter/$', GetByLocationView.as_view(), name='home'),
     url(r'^api/', include(api.urls)),
 
     # Uncomment the admin/doc line below to enable admin documentation:
