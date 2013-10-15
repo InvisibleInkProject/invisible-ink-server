@@ -8,7 +8,7 @@ from tastypie.resources import ModelResource
 import math
 
 class MessageResource(ModelResource):
-    distance = fields.FloatField(attribute='distance')
+    distance = fields.FloatField(attribute='distance', blank=True, null=True)
 
     class Meta:
         queryset = Message.objects.all()
