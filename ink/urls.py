@@ -1,11 +1,14 @@
 from django.conf.urls import patterns, include, url
+from django.contrib import admin
 from ink.resources import MessageResource
 from ink.views import GetByLocationView
 from tastypie.api import Api
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+import ink.models
+
+admin.autodiscover()
+admin.site.register(ink.models.Message)
+admin.site.register(ink.models.User)
 
 api = Api(api_name='v1')    
 api.register(MessageResource())
@@ -19,5 +22,5 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
 )

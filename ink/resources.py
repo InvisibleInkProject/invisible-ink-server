@@ -9,6 +9,7 @@ from tastypie.exceptions import NotFound
 from tastypie.resources import ModelResource
 
 import json
+import logging
 import math
 
 class MessageResource(ModelResource):
@@ -39,6 +40,7 @@ class MessageResource(ModelResource):
     def obj_get_list(self, bundle, **kwargs):
         latitude = kwargs['latitude']
         longitude = kwargs['longitude']
+
         def distance(message):
             def distance_between(lat1, lon1, lat2, lon2):
                 """
@@ -53,7 +55,7 @@ class MessageResource(ModelResource):
 
                 a = math.sin(dLat/2)**2 + math.sin(dLon/2)**2 * math.cos(lat1) * math.cos(lat2)
                 c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-                return R * c
+                return R * c * 1000 # return amount of meters.
 
             def distance_to(location):
                 return distance_between(latitude, longitude, location[0], location[1])
@@ -63,5 +65,7 @@ class MessageResource(ModelResource):
         messages = super(MessageResource, self).obj_get_list(bundle, **kwargs)
         for message in messages:
             message.distance = distance(message)
+
+        messages = filter(lambda msg: msg.distance <= msg.radius, messages)
         return messages
 
