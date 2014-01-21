@@ -1,10 +1,14 @@
 from django.conf.urls import url
-from ink.models import Message
+from django.http import HttpResponse
+from django.views.generic import View
+from ink.models import Message, User
 from tastypie import fields
 from tastypie.authorization import Authorization
+from tastypie.authentication import Authentication
 from tastypie.exceptions import NotFound
 from tastypie.resources import ModelResource
 
+import json
 import math
 
 class MessageResource(ModelResource):
@@ -13,9 +17,10 @@ class MessageResource(ModelResource):
     class Meta:
         queryset = Message.objects.all()
         resource_name = 'message'
+        authentication = Authentication()
         authorization = Authorization() #TODO
         list_allowed_methods = [ 'get', 'post' ]
-        detail_allowed_methods = [ 'get' ]
+        detail_allowed_methods = [ 'get', 'delete' ]
 
     def prepend_urls(self):
         return [

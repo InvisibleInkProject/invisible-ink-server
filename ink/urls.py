@@ -7,7 +7,7 @@ from tastypie.api import Api
 # from django.contrib import admin
 # admin.autodiscover()
 
-api = Api(api_name='v1')
+api = Api(api_name='v1')    
 api.register(MessageResource())
 
 urlpatterns = patterns('',
