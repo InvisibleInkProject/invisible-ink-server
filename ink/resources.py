@@ -18,8 +18,6 @@ class MessageResource(ModelResource):
     class Meta:
         queryset = Message.objects.all()
         resource_name = 'message'
-        authentication = Authentication()
-        authorization = Authorization() #TODO
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
 
@@ -69,3 +67,15 @@ class MessageResource(ModelResource):
         messages = filter(lambda msg: msg.distance <= msg.radius, messages)
         return messages
 
+    def obj_create(self, bundle, **kwargs):
+        user = User.objects.get(id=bundle.data['user_id'])
+        msg = Message(
+            user = user,
+            text = bundle.data['text'],
+            location_lat = bundle.data['location_lat'],
+            location_lon = bundle.data['location_lon'],
+            radius = bundle.data['radius']
+        )
+        msg.save()
+
+        return msg
