@@ -1,3 +1,4 @@
+"""
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
@@ -35,3 +36,4 @@ class GetByLocationView(TemplateView):
             location_lat=location_lat,
             location_lon=location_lon,
         )
+"""

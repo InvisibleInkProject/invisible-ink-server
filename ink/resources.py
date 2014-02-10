@@ -23,14 +23,15 @@ class MessageResource(ModelResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>{})/(?P<latitude>([\+-]?\d+\.\d+)),(?P<longitude>([\+-]?\d+\.\d+))/$".format(self._meta.resource_name), self.wrap_view('dispatch_list_with_geo'), name="api_dispatch_list_with_geo"),
+            url(r"^(?P<resource_name>{})/(?P<latitude>([\+-]?\d+\.\d+)),(?P<longitude>([\+-]?\d+\.\d+)),(?P<windowRadius>([\+-]?\d+\.\d+))/$".format(self._meta.resource_name), self.wrap_view('dispatch_list_with_geo'), name="api_dispatch_list_with_geo"),
         ]
 
-    def dispatch_list_with_geo(self, request, latitude, longitude, **kwargs):
+    def dispatch_list_with_geo(self, request, latitude, longitude, windowRadius, **kwargs):
         latitude = float(latitude)
         longitude = float(longitude)
+        windowRadius = float(windowRadius)
 
-        return self.dispatch_list(request, latitude=latitude, longitude=longitude, **kwargs)
+        return self.dispatch_list(request, latitude=latitude, longitude=longitude, windowRadius=windowRadius, **kwargs)
 
     def apply_sorting(self, obj_list, options=None):
         return sorted(obj_list, key=lambda msg: msg.distance)
@@ -38,6 +39,7 @@ class MessageResource(ModelResource):
     def obj_get_list(self, bundle, **kwargs):
         latitude = kwargs['latitude']
         longitude = kwargs['longitude']
+        windowRadius = kwargs['windowRadius']
 
         def distance(message):
             def distance_between(lat1, lon1, lat2, lon2):
@@ -64,7 +66,7 @@ class MessageResource(ModelResource):
         for message in messages:
             message.distance = distance(message)
 
-        messages = filter(lambda msg: msg.distance <= msg.radius, messages)
+        messages = filter(lambda msg: msg.distance <= windowRadius, messages)
         return messages
 
     def obj_create(self, bundle, **kwargs):
