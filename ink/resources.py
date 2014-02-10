@@ -45,7 +45,7 @@ class MessageResource(ModelResource):
                 Distance between two coordinates given in angles. Algorithm taken from:
                 http://www.movable-type.co.uk/scripts/latlong.html
                 """
-                R = 6371
+                R = 6371 # km
                 dLat = math.radians(lat2 - lat1)
                 dLon = math.radians(lon2 - lon1)
                 lat1 = math.radians(lat1)
