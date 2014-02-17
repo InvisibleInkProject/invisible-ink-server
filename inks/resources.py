@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.http import HttpResponse
 from django.views.generic import View
-from ink.models import Message, User
+from inks.models import Message, User
 from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.authentication import Authentication

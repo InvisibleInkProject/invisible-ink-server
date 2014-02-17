@@ -9,3 +9,5 @@ settings.py
 
 # Database
 *.sqlite3
+
+wsgi.py

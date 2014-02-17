@@ -1,10 +1,10 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from ink.resources import MessageResource
+from inks.resources import MessageResource
 #from ink.views import GetByLocationView
 from tastypie.api import Api
 
-import ink.models
+import inks.models
 
 admin.autodiscover()
 #admin.site.register(ink.models.Message)
