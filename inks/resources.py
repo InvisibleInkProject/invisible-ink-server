@@ -82,7 +82,7 @@ class MessageResource(ModelResource):
                 expires = bundle.data['expires']
             )
         else:
-             msg = Message(
+            msg = Message(
                 user = user,
                 text = bundle.data['text'],
                 location_lat = bundle.data['location_lat'],
