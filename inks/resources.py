@@ -76,7 +76,8 @@ class MessageResource(ModelResource):
             text = bundle.data['text'],
             location_lat = bundle.data['location_lat'],
             location_lon = bundle.data['location_lon'],
-            radius = bundle.data['radius']
+            radius = bundle.data['radius'],
+            expires = bundle.data['expires']
         )
         msg.save()
 
