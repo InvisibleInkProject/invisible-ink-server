@@ -71,14 +71,25 @@ class MessageResource(ModelResource):
 
     def obj_create(self, bundle, **kwargs):
         user = User.objects.get(id=bundle.data['user_id'])
-        msg = Message(
-            user = user,
-            text = bundle.data['text'],
-            location_lat = bundle.data['location_lat'],
-            location_lon = bundle.data['location_lon'],
-            radius = bundle.data['radius'],
-            expires = bundle.data['expires']
-        )
+
+        if bundle.data['expires']:
+            msg = Message(
+                user = user,
+                text = bundle.data['text'],
+                location_lat = bundle.data['location_lat'],
+                location_lon = bundle.data['location_lon'],
+                radius = bundle.data['radius'],
+                expires = bundle.data['expires']
+            )
+        else:
+             msg = Message(
+                user = user,
+                text = bundle.data['text'],
+                location_lat = bundle.data['location_lat'],
+                location_lon = bundle.data['location_lon'],
+                radius = bundle.data['radius']
+            )           
+
         msg.save()
 
         return msg
