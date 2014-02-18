@@ -1,8 +1,3 @@
-/venv/
-
-
-
-
 *.pyc
 *~
 *.swp
@@ -16,3 +11,9 @@ wsgi.py
 
 # Log files
 *.log
+
+# Server files
+/venv/
+build/
+index.wsgi
+static/
