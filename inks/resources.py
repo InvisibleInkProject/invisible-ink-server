@@ -47,7 +47,7 @@ class MessageResource(ModelResource):
                 Distance between two coordinates given in angles. Algorithm taken from:
                 http://www.movable-type.co.uk/scripts/latlong.html
                 """
-                R = 6371 # km
+                R = 6371
                 dLat = math.radians(lat2 - lat1)
                 dLon = math.radians(lon2 - lon1)
                 lat1 = math.radians(lat1)
@@ -71,25 +71,13 @@ class MessageResource(ModelResource):
 
     def obj_create(self, bundle, **kwargs):
         user = User.objects.get(id=bundle.data['user_id'])
-
-        if bundle.data['expires']:
-            msg = Message(
-                user = user,
-                text = bundle.data['text'],
-                location_lat = bundle.data['location_lat'],
-                location_lon = bundle.data['location_lon'],
-                radius = bundle.data['radius'],
-                expires = bundle.data['expires']
-            )
-        else:
-            msg = Message(
-                user = user,
-                text = bundle.data['text'],
-                location_lat = bundle.data['location_lat'],
-                location_lon = bundle.data['location_lon'],
-                radius = bundle.data['radius']
-            )           
-
+        msg = Message(
+            user = user,
+            text = bundle.data['text'],
+            location_lat = bundle.data['location_lat'],
+            location_lon = bundle.data['location_lon'],
+            radius = bundle.data['radius']
+        )
         msg.save()
 
         return msg

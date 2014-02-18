@@ -1,13 +1,18 @@
 /venv/
 
-settings.py
 
-*.db
+
+
 *.pyc
 *~
 *.swp
 
+settings.py
+wsgi.py
+
 # Database
+*.db
 *.sqlite3
 
-wsgi.py
+# Log files
+*.log

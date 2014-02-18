@@ -12,13 +12,8 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'sqlite3.db',                      # Or path to database file if using sqlite3.
-        # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
-    }
+        'NAME': 'db.sqlite3',                      # Or path to database file if using sqlite3.
+    },
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
@@ -29,7 +24,7 @@ ALLOWED_HOSTS = []
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Europe/Oslo'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -84,10 +79,6 @@ STATICFILES_FINDERS = (
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
-TWITTER_CONSUMER_KEY = ""
-TWITTER_CONSUMER_SECRET = ""
-TWITTER_ACCESS_KEY = ""
-TWITTER_ACCESS_SECRET = ""
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -106,10 +97,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'ink.urls'
+ROOT_URLCONF = 'server.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'ink.wsgi.application'
+WSGI_APPLICATION = 'server.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -128,8 +119,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'server',
+    'inks',
+    # added apps
     'tastypie',
-    'ink',
+    'django_cron',
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
@@ -147,12 +141,30 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },    
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },        
     },
     'loggers': {
         'django.request': {
@@ -160,7 +172,21 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'core.handlers': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'inks': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG'
+        },        
     }
 }
+
+CRON_CLASSES = [
+    "inks.chronjob.DeleteExpiredInks",
+    # ...
+]
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
