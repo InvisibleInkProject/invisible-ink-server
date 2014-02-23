@@ -1,16 +1,23 @@
-from django.conf.urls import url
-from django.http import HttpResponse
-from django.views.generic import View
-from ink.models import Message, User
-from tastypie import fields
-from tastypie.authorization import Authorization
-from tastypie.authentication import Authentication
-from tastypie.exceptions import NotFound
-from tastypie.resources import ModelResource
-
+#Imports
 import json
 import logging
 import math
+
+#Django imports
+from django.conf.urls import url
+from django.http import HttpResponse
+from django.views.generic import View
+
+#Third party imports
+from tastypie import fields
+from tastypie.exceptions import NotFound
+from tastypie.resources import ModelResource
+from tastypie.authorization import DjangoAuthorization
+
+from authentication import OAuth20Authentication
+
+#Ink imports
+from ink.models import Message, User
 
 class MessageResource(ModelResource):
     distance = fields.FloatField(attribute='distance', blank=True, null=True)
@@ -20,6 +27,9 @@ class MessageResource(ModelResource):
         resource_name = 'message'
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
+
+        authentication = OAuth20Authentication()
+        #authorization = DjangoAuthorization()
 
     def prepend_urls(self):
         return [
@@ -81,3 +91,16 @@ class MessageResource(ModelResource):
         msg.save()
 
         return msg
+
+
+class UserResource(ModelResource):
+    class Meta:
+        queryset = User.objects.all()
+        resource_name = 'user'
+        list_allowed_methods = [ 'get', 'post' ]
+        detail_allowed_methods = [ 'get', 'delete' ]
+        excludes = ['password']
+
+        authentication = OAuth20Authentication()
+        #authorization = DjangoAuthorization()
+
