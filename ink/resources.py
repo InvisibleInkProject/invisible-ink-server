@@ -87,6 +87,7 @@ class MessageResource(ModelResource):
         #Check if the user is authorized to create
         self.authorized_create_detail(Message.objects.all(), bundle)
 
+        #TODO: Check what this does exactly
         self.is_valid(bundle)
 
         if bundle.errors:
