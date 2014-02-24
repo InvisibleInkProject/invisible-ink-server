@@ -15,6 +15,7 @@ from tastypie.resources import ModelResource
 from tastypie.authorization import DjangoAuthorization
 
 from authentication import OAuth20Authentication
+from authorization import InkAuthorization
 
 #Ink imports
 from ink.models import Message, User
@@ -29,7 +30,7 @@ class MessageResource(ModelResource):
         detail_allowed_methods = [ 'get', 'delete' ]
 
         authentication = OAuth20Authentication()
-        #authorization = DjangoAuthorization()
+        authorization = InkAuthorization()
 
     def prepend_urls(self):
         return [
@@ -78,9 +79,22 @@ class MessageResource(ModelResource):
 
         messages = filter(lambda msg: msg.distance <= windowRadius, messages)
         return messages
-
+    
+    # Todo: Check if this is the right way to do this and also check
+    #       why the authorization isn't called            
     def obj_create(self, bundle, **kwargs):
-        user = User.objects.get(id=bundle.data['user_id'])
+
+        #Check if the user is authorized to create
+        self.authorized_create_detail(Message.objects.all(), bundle)
+
+        self.is_valid(bundle)
+
+        if bundle.errors:
+            self.error_response(bundle.errors, request)
+
+        #Get the user_id from the request
+        user_id = bundle.request.user.id
+        user = User.objects.get(id=user_id)
         msg = Message(
             user = user,
             text = bundle.data['text'],
@@ -102,5 +116,5 @@ class UserResource(ModelResource):
         excludes = ['password']
 
         authentication = OAuth20Authentication()
-        #authorization = DjangoAuthorization()
+        authorization = InkAuthorization()
 
