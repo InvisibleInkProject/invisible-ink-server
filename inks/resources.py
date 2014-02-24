@@ -1,16 +1,24 @@
-from django.conf.urls import url
-from django.http import HttpResponse
-from django.views.generic import View
-from inks.models import Message, User
-from tastypie import fields
-from tastypie.authorization import Authorization
-from tastypie.authentication import Authentication
-from tastypie.exceptions import NotFound
-from tastypie.resources import ModelResource
-
+#Imports
 import json
 import logging
 import math
+
+#Django imports
+from django.conf.urls import url
+from django.http import HttpResponse
+from django.views.generic import View
+
+#Third party imports
+from tastypie import fields
+from tastypie.exceptions import NotFound
+from tastypie.resources import ModelResource
+from tastypie.authorization import DjangoAuthorization
+
+from authentication import OAuth20Authentication
+from authorization import InkAuthorization
+
+#Ink imports
+from inks.models import Message, User
 
 class MessageResource(ModelResource):
     distance = fields.FloatField(attribute='distance', blank=True, null=True)
@@ -20,6 +28,9 @@ class MessageResource(ModelResource):
         resource_name = 'message'
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
+
+        authentication = OAuth20Authentication()
+        authorization = InkAuthorization()
 
     def prepend_urls(self):
         return [
@@ -68,9 +79,23 @@ class MessageResource(ModelResource):
 
         messages = filter(lambda msg: msg.distance <= windowRadius, messages)
         return messages
-
+    
+    # Todo: Check if this is the right way to do this and also check
+    #       why the authorization isn't called            
     def obj_create(self, bundle, **kwargs):
-        user = User.objects.get(id=bundle.data['user_id'])
+
+        #Check if the user is authorized to create
+        self.authorized_create_detail(Message.objects.all(), bundle)
+
+        #TODO: Check what this does exactly
+        self.is_valid(bundle)
+
+        if bundle.errors:
+            self.error_response(bundle.errors, request)
+
+        #Get the user_id from the request
+        user_id = bundle.request.user.id
+        user = User.objects.get(id=user_id)
         msg = Message(
             user = user,
             text = bundle.data['text'],
@@ -81,3 +106,16 @@ class MessageResource(ModelResource):
         msg.save()
 
         return msg
+
+
+class UserResource(ModelResource):
+    class Meta:
+        queryset = User.objects.all()
+        resource_name = 'user'
+        list_allowed_methods = [ 'get', 'post' ]
+        detail_allowed_methods = [ 'get', 'delete' ]
+        excludes = ['password']
+
+        authentication = OAuth20Authentication()
+        authorization = InkAuthorization()
+
