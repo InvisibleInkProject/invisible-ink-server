@@ -3,8 +3,7 @@ from django.db import models
 from tastypie.models import create_api_key
 
 class User(django.contrib.auth.models.User):
-    display_name = models.CharField(max_length=50)
-    age = models.IntegerField()
+    birthday = models.DateField()
     gender = models.CharField(max_length=1)
     nationality = models.CharField(max_length=40, null=True, blank=True)
 

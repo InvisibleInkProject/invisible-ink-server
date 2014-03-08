@@ -9,13 +9,13 @@ from django.http import HttpResponse
 from django.views.generic import View
 
 #Third party imports
-from tastypie import fields
-from tastypie.exceptions import NotFound
+from tastypie import fields, http
+from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.authorization import DjangoAuthorization
-
+from tastypie.authentication import Authentication
 from authentication import OAuth20Authentication
-from authorization import InkAuthorization
+from authorization import InkAuthorization, RegisterAuthorization
 
 #Ink imports
 from inks.models import Message, User
@@ -103,6 +103,7 @@ class MessageResource(ModelResource):
             location_lon = bundle.data['location_lon'],
             radius = bundle.data['radius']
         )
+
         msg.save()
 
         return msg
@@ -119,3 +120,31 @@ class UserResource(ModelResource):
         authentication = OAuth20Authentication()
         authorization = InkAuthorization()
 
+
+class RegisterResource(ModelResource): 
+    class Meta:
+        queryset = User.objects.all()
+        resource_name = 'register'
+        list_allowed_methods = [ 'post' ]
+        detail_allowed_methods = []
+
+        authentication = Authentication()
+        authorization = RegisterAuthorization()
+
+    def obj_create(self, bundle, **kwargs):
+        #TODO:  Make sure that both users are created and then return 
+        # else loop it back
+        try:
+            user = User(
+                username = bundle.data['username'],
+                password = bundle.data['password'],
+                email = bundle.data['email'],
+                birthday = bundle.data['birthday']
+            )
+        except KeyError, e:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(e))
+        
+
+        user.save()
+
+        return user
