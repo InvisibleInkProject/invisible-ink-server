@@ -3,10 +3,24 @@ from resources import Message, User
 
 from django.test import client
 
-from provider.oauth2 import models
+from provider.oauth2 import models as oauth_models
+from inks import models as ink_models
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-class AuthenticationTestCase(ResourceTestCase):
+class InkTestCase(ResourceTestCase):
+    api_version = 'v1'
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def get_api_url(self, path):
+        return '/api/' + self.api_version + '/' + path + '/'
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def get_credentials(self):
+        return 'OAuth %s' % self.access_token
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+class AuthenticationTestCase(InkTestCase):
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     #TODO: This is too big of a setup method. And should probably be 
@@ -21,13 +35,13 @@ class AuthenticationTestCase(ResourceTestCase):
                             self.username, 
                             'mark@thedutchies.com', 
                             self.password, 
-                            age=20
+                            birthday="1981-11-20"
                     )
         self.user = User.objects.create_user(
                             'user2', 
                             'mark@thedutchies.com', 
                             'user2pass', 
-                            age=19
+                            birthday="1982-12-12"
                     )
 
         Message.objects.create(
@@ -38,7 +52,7 @@ class AuthenticationTestCase(ResourceTestCase):
                 radius = 10
         )
 
-        self.client = models.Client(
+        self.client = oauth_models.Client(
                 user=self.user, 
                 name="mysite client", 
                 client_type=1, 
@@ -61,7 +75,7 @@ class AuthenticationTestCase(ResourceTestCase):
                 format='application/x-www-form-urlencoded', 
                 data=self.access_token_data
         )
-        self.access_token = models.AccessToken.objects.get(id=1)
+        self.access_token = oauth_models.AccessToken.objects.get(id=1)
 
         self.db_entry = Message.objects.get(id=1)
 
@@ -73,9 +87,6 @@ class AuthenticationTestCase(ResourceTestCase):
         }
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    def get_credentials(self):
-        return 'OAuth %s' % self.access_token
-
     def get_first_message_from_api(self):
         return self.api_client.get(
                 '/api/v1/message/1/', 
@@ -95,7 +106,7 @@ class AuthenticationTestCase(ResourceTestCase):
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     def test_get_all_messages(self):
         resp = self.api_client.get(
-                '/api/v1/message/10.0,10.0,10.0/', 
+                self.get_api_url('message/10.0,10.0,10.0'), 
                 format='json', 
                 authentication=self.get_credentials()
         )
@@ -104,7 +115,10 @@ class AuthenticationTestCase(ResourceTestCase):
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     def test_access_denied_for_single_message(self):
         self.assertHttpUnauthorized(
-                self.api_client.get('/api/v1/message/1/', format='json')
+                self.api_client.get(
+                        self.get_api_url('message/1'), 
+                        format='json'
+                )
         )
     
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -132,7 +146,7 @@ class AuthenticationTestCase(ResourceTestCase):
     def test_access_denied_for_posting_a_message(self):
         self.assertHttpUnauthorized(
             resp = self.api_client.post(
-                    '/api/v1/message/',
+                    self.get_api_url('message'),
                     format='json',
                     data=self.message_data,
             )
@@ -143,7 +157,7 @@ class AuthenticationTestCase(ResourceTestCase):
         initial_message_count = Message.objects.count()
 
         resp = self.api_client.post(
-                '/api/v1/message/',
+                self.get_api_url('message'),
                 format='json',
                 data=self.message_data,
                 authentication=self.get_credentials()
@@ -151,3 +165,67 @@ class AuthenticationTestCase(ResourceTestCase):
 
         self.assertHttpCreated(resp)
         self.assertEquals(Message.objects.count(), initial_message_count + 1)
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+class NewUserResourceTests(InkTestCase):
+
+    def setUp(self):
+        super(NewUserResourceTests, self).setUp()
+        self.user_data = {
+            'username': 'mark1',
+            'password': 'polak2',
+            'display_name': 'Markionium',
+        }
+
+    # Helper functions
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def create_a_correct_user(self):
+        self.user_data['email'] = 'mark@thedutchies.com'
+        self.user_data['birthday'] = '1912-01-30'
+
+        resp = self.api_client.post(
+                self.get_api_url('register'),
+                format='json',
+                data=self.user_data,
+        )
+
+        return resp
+
+    # Tests
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def test_create_user(self):
+        resp = self.create_a_correct_user()
+
+        self.assertHttpCreated(resp)
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def test_create_user_without_email(self):
+        resp = self.api_client.post(
+                self.get_api_url('register'),
+                format='json',
+                data=self.user_data,
+        )
+
+        self.assertHttpBadRequest(resp)
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def test_create_user_without_birthday(self):
+        resp = self.api_client.post(
+                self.get_api_url('register'),
+                format='json',
+                data=self.user_data,
+        )
+
+        self.assertHttpBadRequest(resp)
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def test_create_oauth_client_for_user(self):
+        resp = self.create_a_correct_user()
+
+        user = ink_models.User.objects.get(username="mark1")
+        client = oauth_models.Client.objects.get(user=user.user)
+
+        self.assertEqual(client.name, 'Invisible Ink: mark1')
+        self.assertEqual(client.client_type, 1)
+        self.assertEqual(client.url, 'http://www.invisibleink.no')

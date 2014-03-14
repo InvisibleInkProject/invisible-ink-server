@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 
-from inks.resources import MessageResource, UserResource
+from inks.resources import MessageResource, UserResource, RegisterResource
 
 from tastypie.api import Api
 
@@ -12,6 +12,7 @@ admin.autodiscover()
 api = Api(api_name='v1')    
 api.register(MessageResource())
 api.register(UserResource())
+api.register(RegisterResource())
 
 urlpatterns = patterns('',
     # Examples:
