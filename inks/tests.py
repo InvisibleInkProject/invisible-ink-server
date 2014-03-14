@@ -3,7 +3,8 @@ from resources import Message, User
 
 from django.test import client
 
-from provider.oauth2 import models
+from provider.oauth2 import models as oauth_models
+from inks import models as ink_models
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 class InkTestCase(ResourceTestCase):
@@ -51,7 +52,7 @@ class AuthenticationTestCase(InkTestCase):
                 radius = 10
         )
 
-        self.client = models.Client(
+        self.client = oauth_models.Client(
                 user=self.user, 
                 name="mysite client", 
                 client_type=1, 
@@ -74,7 +75,7 @@ class AuthenticationTestCase(InkTestCase):
                 format='application/x-www-form-urlencoded', 
                 data=self.access_token_data
         )
-        self.access_token = models.AccessToken.objects.get(id=1)
+        self.access_token = oauth_models.AccessToken.objects.get(id=1)
 
         self.db_entry = Message.objects.get(id=1)
 
@@ -177,8 +178,9 @@ class NewUserResourceTests(InkTestCase):
             'display_name': 'Markionium',
         }
 
+    # Helper functions
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    def test_create_user(self):
+    def create_a_correct_user(self):
         self.user_data['email'] = 'mark@thedutchies.com'
         self.user_data['birthday'] = '1912-01-30'
 
@@ -187,6 +189,13 @@ class NewUserResourceTests(InkTestCase):
                 format='json',
                 data=self.user_data,
         )
+
+        return resp
+
+    # Tests
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    def test_create_user(self):
+        resp = self.create_a_correct_user()
 
         self.assertHttpCreated(resp)
 
@@ -211,5 +220,12 @@ class NewUserResourceTests(InkTestCase):
         self.assertHttpBadRequest(resp)
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    def test_create_user_without_display_name(self):
-        pass
+    def test_create_oauth_client_for_user(self):
+        resp = self.create_a_correct_user()
+
+        user = ink_models.User.objects.get(username="mark1")
+        client = oauth_models.Client.objects.get(user=user.user)
+
+        self.assertEqual(client.name, 'Invisible Ink: mark1')
+        self.assertEqual(client.client_type, 1)
+        self.assertEqual(client.url, 'http://www.invisibleink.no')

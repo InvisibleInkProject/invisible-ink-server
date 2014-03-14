@@ -20,6 +20,8 @@ from authorization import InkAuthorization, RegisterAuthorization
 #Ink imports
 from inks.models import Message, User
 
+from provider.oauth2.models import Client
+
 class MessageResource(ModelResource):
     distance = fields.FloatField(attribute='distance', blank=True, null=True)
 
@@ -108,6 +110,12 @@ class MessageResource(ModelResource):
 
         return msg
 
+    def alter_list_data_to_serialize(self,request,data_dict): 
+        if isinstance(data_dict,dict): 
+            if 'meta' in data_dict: 
+                del(data_dict['meta']) 
+                return data_dict  
+
 
 class UserResource(ModelResource):
     class Meta:
@@ -116,35 +124,42 @@ class UserResource(ModelResource):
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
         excludes = ['password']
-
         authentication = OAuth20Authentication()
         authorization = InkAuthorization()
 
-
 class RegisterResource(ModelResource): 
     class Meta:
-        queryset = User.objects.all()
+        queryset = Client.objects.all()
         resource_name = 'register'
         list_allowed_methods = [ 'post' ]
         detail_allowed_methods = []
-
         authentication = Authentication()
         authorization = RegisterAuthorization()
+        always_return_data = True
+        fields = ['client_id', 'client_secret']
+        include_resource_uri = False
 
     def obj_create(self, bundle, **kwargs):
         #TODO:  Make sure that both users are created and then return 
         # else loop it back
+        #TODO: Create more json friendly error messages
         try:
             user = User(
                 username = bundle.data['username'],
-                password = bundle.data['password'],
                 email = bundle.data['email'],
                 birthday = bundle.data['birthday']
             )
+            user.set_password(bundle.data['password'])
+            user.save()
         except KeyError, e:
             raise ImmediateHttpResponse(response=http.HttpBadRequest(e))
-        
+        except Exception, e:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(e))
 
-        user.save()
+        # Reset the bundle data so that the passed in data does not get returned
+        bundle.data = {}
 
-        return user
+        #Set the client as the object to be returned
+        bundle.obj = Client.objects.get(user=user)
+
+        return bundle
