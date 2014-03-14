@@ -19,6 +19,7 @@ from authorization import InkAuthorization, RegisterAuthorization
 
 #Ink imports
 from inks.models import Message, User
+from inks.serializers import InksSerializer
 
 from provider.oauth2.models import Client
 
@@ -33,6 +34,7 @@ class MessageResource(ModelResource):
 
         authentication = OAuth20Authentication()
         authorization = InkAuthorization()
+        serializer = InksSerializer(['json'])
 
     def prepend_urls(self):
         return [
@@ -40,11 +42,24 @@ class MessageResource(ModelResource):
         ]
 
     def dispatch_list_with_geo(self, request, latitude, longitude, windowRadius, **kwargs):
+
+        self.check_for_array_only_param(request)
+
         latitude = float(latitude)
         longitude = float(longitude)
         windowRadius = float(windowRadius)
 
         return self.dispatch_list(request, latitude=latitude, longitude=longitude, windowRadius=windowRadius, **kwargs)
+
+    """
+    TODO: This is probably not the best thing to do since for every request
+          we now change the meta object. Perhaps some performance testing can be done
+          to ensure that this is not a problem
+    """
+    def check_for_array_only_param(self, request):
+        self.Meta.serializer.no_meta = False
+        if request.GET.get('no_meta') == 'true':
+            self.Meta.serializer.no_meta = True
 
     def apply_sorting(self, obj_list, options=None):
         return sorted(obj_list, key=lambda msg: msg.distance)
@@ -109,12 +124,17 @@ class MessageResource(ModelResource):
         msg.save()
 
         return msg
-
+    """
     def alter_list_data_to_serialize(self,request,data_dict): 
         if isinstance(data_dict,dict): 
             if 'meta' in data_dict: 
                 del(data_dict['meta']) 
                 return data_dict  
+
+    def dehydrate(self, bundle):
+        print bundle
+        return {}
+    """
 
 
 class UserResource(ModelResource):
