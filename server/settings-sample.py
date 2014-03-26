@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'inks',
     # added apps
     'tastypie',
+    'tastypie_swagger',
     'django_cron',
 )
 
@@ -184,9 +185,21 @@ LOGGING = {
     }
 }
 
+
+#
+# tastypie app
+#
+TASTYPIE_DEFAULT_FORMATS = ['json']
+
+#
+# tastypie_swagger app
+#
+TASTYPIE_SWAGGER_API_MODULE = 'server.urls.api'
+
+#
+# django_cron app
+#
 CRON_CLASSES = [
     "inks.chronjob.DeleteExpiredInks",
     # ...
 ]
-
-TASTYPIE_DEFAULT_FORMATS = ['json']
