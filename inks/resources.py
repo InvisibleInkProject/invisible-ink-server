@@ -9,16 +9,19 @@ from django.http import HttpResponse
 from django.views.generic import View
 
 #Third party imports
-from tastypie import fields
-from tastypie.exceptions import NotFound
+from tastypie import fields, http
+from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.authorization import DjangoAuthorization
-
+from tastypie.authentication import Authentication
 from authentication import OAuth20Authentication
-from authorization import InkAuthorization
+from authorization import InkAuthorization, RegisterAuthorization
 
 #Ink imports
 from inks.models import Message, User
+from inks.serializers import InksSerializer
+
+from provider.oauth2.models import Client
 
 class MessageResource(ModelResource):
     distance = fields.FloatField(attribute='distance', blank=True, null=True)
@@ -31,6 +34,7 @@ class MessageResource(ModelResource):
 
         #authentication = OAuth20Authentication()
         #authorization = InkAuthorization()
+        serializer = InksSerializer(['json'])
 
     def prepend_urls(self):
         return [
@@ -38,11 +42,24 @@ class MessageResource(ModelResource):
         ]
 
     def dispatch_list_with_geo(self, request, latitude, longitude, windowRadius, **kwargs):
+
+        self.check_for_array_only_param(request)
+
         latitude = float(latitude)
         longitude = float(longitude)
         windowRadius = float(windowRadius)
 
         return self.dispatch_list(request, latitude=latitude, longitude=longitude, windowRadius=windowRadius, **kwargs)
+
+    """
+    TODO: This is probably not the best thing to do since for every request
+          we now change the meta object. Perhaps some performance testing can be done
+          to ensure that this is not a problem
+    """
+    def check_for_array_only_param(self, request):
+        self.Meta.serializer.no_meta = False
+        if request.GET.get('no_meta') == 'true':
+            self.Meta.serializer.no_meta = True
 
     def apply_sorting(self, obj_list, options=None):
         return sorted(obj_list, key=lambda msg: msg.distance)
@@ -103,9 +120,21 @@ class MessageResource(ModelResource):
             location_lon = bundle.data['location_lon'],
             radius = bundle.data['radius']
         )
+
         msg.save()
 
         return msg
+    """
+    def alter_list_data_to_serialize(self,request,data_dict): 
+        if isinstance(data_dict,dict): 
+            if 'meta' in data_dict: 
+                del(data_dict['meta']) 
+                return data_dict  
+
+    def dehydrate(self, bundle):
+        print bundle
+        return {}
+    """
 
 
 class UserResource(ModelResource):
@@ -115,7 +144,42 @@ class UserResource(ModelResource):
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
         excludes = ['password']
-
         authentication = OAuth20Authentication()
         authorization = InkAuthorization()
 
+class RegisterResource(ModelResource): 
+    class Meta:
+        queryset = Client.objects.all()
+        resource_name = 'register'
+        list_allowed_methods = [ 'post' ]
+        detail_allowed_methods = []
+        authentication = Authentication()
+        authorization = RegisterAuthorization()
+        always_return_data = True
+        fields = ['client_id', 'client_secret']
+        include_resource_uri = False
+
+    def obj_create(self, bundle, **kwargs):
+        #TODO:  Make sure that both users are created and then return 
+        # else loop it back
+        #TODO: Create more json friendly error messages
+        try:
+            user = User(
+                username = bundle.data['username'],
+                email = bundle.data['email'],
+                birthday = bundle.data['birthday']
+            )
+            user.set_password(bundle.data['password'])
+            user.save()
+        except KeyError, e:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(e))
+        except Exception, e:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(e))
+
+        # Reset the bundle data so that the passed in data does not get returned
+        bundle.data = {}
+
+        #Set the client as the object to be returned
+        bundle.obj = Client.objects.get(user=user)
+
+        return bundle
