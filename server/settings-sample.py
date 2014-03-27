@@ -122,6 +122,8 @@ INSTALLED_APPS = (
     'server',
     'inks',
     # added apps
+    'provider',
+    'provider.oauth2',
     'tastypie',
     'tastypie_swagger',
     'django_cron',
