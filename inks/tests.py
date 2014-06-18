@@ -96,12 +96,11 @@ class AuthenticationTestCase(InkTestCase):
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     def test_access_denied_for_normal_request(self):
-        self.assertHttpUnauthorized(
-                self.api_client.get(
+        resp = self.api_client.get(
                         '/api/v1/message/10.0,10.0,10.0/', 
                         format='json'
                 )
-        )        
+        self.assertHttpUnauthorized(resp)        
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     def test_get_all_messages(self):
@@ -144,13 +143,13 @@ class AuthenticationTestCase(InkTestCase):
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     def test_access_denied_for_posting_a_message(self):
-        self.assertHttpUnauthorized(
-            resp = self.api_client.post(
+        resp = self.api_client.post(
                     self.get_api_url('message'),
                     format='json',
                     data=self.message_data,
             )
-        )
+
+        self.assertHttpUnauthorized(resp)
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     def test_posting_a_message(self):

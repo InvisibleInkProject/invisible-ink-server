@@ -32,8 +32,8 @@ class MessageResource(ModelResource):
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
 
-#       authentication = OAuth20Authentication()
-#       authorization = InkAuthorization()
+        authentication = OAuth20Authentication()
+        authorization = InkAuthorization()
         serializer = InksSerializer(['json'])
 
     def prepend_urls(self):
@@ -102,7 +102,7 @@ class MessageResource(ModelResource):
     def obj_create(self, bundle, **kwargs):
 
         #Check if the user is authorized to create
-#       self.authorized_create_detail(Message.objects.all(), bundle)
+        self.authorized_create_detail(Message.objects.all(), bundle)
 
         #TODO: Check what this does exactly
         self.is_valid(bundle)
@@ -113,6 +113,7 @@ class MessageResource(ModelResource):
         #Get the user_id from the request
         user_id = bundle.request.user.id
         user = User.objects.get(id=user_id)
+
         msg = Message(
             user = user,
             text = bundle.data['text'],
