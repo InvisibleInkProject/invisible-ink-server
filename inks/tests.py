@@ -76,7 +76,7 @@ class AuthenticationTestCase(InkTestCase):
                 data=self.access_token_data
         )
         print oauth_models.AccessToken.objects.all()[0].id
-        self.access_token = oauth_models.AccessToken.objects.get(id=1)
+        self.access_token = oauth_models.AccessToken.objects.all()[0]
 
         self.db_entry = Message.objects.get(id=1)
 
