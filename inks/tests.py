@@ -75,7 +75,7 @@ class AuthenticationTestCase(InkTestCase):
                 format='application/x-www-form-urlencoded', 
                 data=self.access_token_data
         )
-        print oauth_models.AccessToken.objects.all()
+        print oauth_models.AccessToken.objects.all()[0].id
         self.access_token = oauth_models.AccessToken.objects.get(id=1)
 
         self.db_entry = Message.objects.get(id=1)
