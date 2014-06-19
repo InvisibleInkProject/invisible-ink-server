@@ -80,6 +80,7 @@ class OAuth20Authentication(Authentication):
 
 def verify_access_token(key):
     # Check if key is in AccessToken key
+    return token
     try:
         token = AccessToken.objects.get(token=key)
 
