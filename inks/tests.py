@@ -227,4 +227,4 @@ class NewUserResourceTests(InkTestCase):
 
         self.assertEqual(client.name, 'Invisible Ink: mark1')
         self.assertEqual(client.client_type, 1)
-        self.assertEqual(client.url, 'http://www.invisibleink.no')
+        self.assertEqual(client.url, 'http://server.invisibleink.no')
