@@ -33,7 +33,7 @@ class MessageResource(ModelResource):
         detail_allowed_methods = [ 'get', 'delete' ]
 
         authentication = OAuth20Authentication()
-        #authorization = InkAuthorization()
+        authorization = InkAuthorization()
         serializer = InksSerializer(['json'])
 
     def prepend_urls(self):
