@@ -32,7 +32,7 @@ class MessageResource(ModelResource):
         list_allowed_methods = [ 'get', 'post' ]
         detail_allowed_methods = [ 'get', 'delete' ]
 
-        #authentication = OAuth20Authentication()
+        authentication = OAuth20Authentication()
         #authorization = InkAuthorization()
         serializer = InksSerializer(['json'])
 
