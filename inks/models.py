@@ -15,7 +15,7 @@ def create_oauth_client_for_user(sender, instance, created, **kwargs):
             user=DjangoUser.objects.get(id=instance.id), 
             name="Invisible Ink: %s" % instance.username, 
             client_type=1, 
-            url="http://www.invisibleink.no"
+            url="http://server.invisibleink.no"
     )
     client.save()
 
