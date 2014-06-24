@@ -69,6 +69,7 @@ class OAuth20Authentication(Authentication):
                 if auth_header_value:
                     key = auth_header_value.split(' ')[1]
             if not key:
+                logging.error(request.GET)
                 logging.error('OAuth20Authentication. No consumer_key found.')
                 return None
             """
