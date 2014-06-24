@@ -21,6 +21,19 @@ Dependencies:
 Example:
  - http://ianalexandr.com
 """
+def verify_access_token(key):
+    # Check if key is in AccessToken key
+    try:
+        token = AccessToken.objects.get(token=key)
+
+        # Check if token has expired
+        if token.expires < timezone.now():
+            raise OAuthError('AccessToken has expired.')
+    except AccessToken.DoesNotExist, e:
+        raise OAuthError("AccessToken not found at all.")
+
+    logging.info('Valid access')
+    return token
 
 # stolen from piston
 class OAuthError(RuntimeError):
@@ -77,18 +90,3 @@ class OAuth20Authentication(Authentication):
             logging.exception("Error in OAuth20Authentication.")
             return False
         return True
-
-def verify_access_token(key):
-    # Check if key is in AccessToken key
-    return token
-    try:
-        token = AccessToken.objects.get(token=key)
-
-        # Check if token has expired
-        if token.expires < timezone.now():
-            raise OAuthError('AccessToken has expired.')
-    except AccessToken.DoesNotExist, e:
-        raise OAuthError("AccessToken not found at all.")
-
-    logging.info('Valid access')
-    return token
