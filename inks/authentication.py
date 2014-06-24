@@ -60,6 +60,9 @@ class OAuth20Authentication(Authentication):
         """
         logging.info("OAuth20Authentication")
 
+        print request.META.get('HTTP_AUTHORIZATION')
+        logging.error(request.META.get('HTTP_AUTHORIZATION'))
+
         try:
             key = request.GET.get('oauth_consumer_key')
             if not key:
@@ -69,6 +72,7 @@ class OAuth20Authentication(Authentication):
                 if auth_header_value:
                     key = auth_header_value.split(' ')[1]
             if not key:
+                print key
                 logging.error(request.GET)
                 logging.error('OAuth20Authentication. No consumer_key found.')
                 return None
