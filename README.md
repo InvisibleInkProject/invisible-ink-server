@@ -14,12 +14,9 @@ For details see [requirements.txt](requirements.txt)!
 
 ### Run
 
-
-1. Create a settings file `cp settings-sample.py settings.py`
-
-2. Modify the `SECRET_KEY` in this file (it can't be empty)
+1. Create a settings file `cp settings-sample.py settings.py` and modify the `SECRET_KEY` in this file (it can't be empty)
+2. Install the requirements `pip install -r requirements.txt`
 3. Create database tables and a superuser `python manage.py syncdb`
-
 4. Run server `python manage.py runserver`
 
     Admin site: [http://localhost:8000/admin/](http://localhost:8000/admin/)
